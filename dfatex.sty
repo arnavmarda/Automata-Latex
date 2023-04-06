@@ -16,7 +16,16 @@
 }
 
 \newenvironment{dfa}[0]{
-    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+    \begin{tikzpicture}[
+        shorten >=1pt,
+        >={Stealth[round]},
+        very thick,
+        node distance=3cm,
+        on grid,
+        auto,
+        every state/.style={ultra thick},
+        accepting/.style ={draw=green!50!black, ultra thick, fill=green!80!black, text=black}
+        ]
 }{
     \end{tikzpicture}
 }
@@ -35,7 +44,7 @@
         state, 
         accepting,
         #2
-    ] {#3};
+    ] {\textbf{#3}};
 }
 
 \newcommand{\state}[3]{
@@ -46,11 +55,11 @@
 }
 
 \newcommand{\trans}[5] {
-    \path[-{Stealth[open, round, color=black]}, thick]
+    \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [#2] node[#3] {#4} (#5);
 }
 
-\newcommand{\ltran}[4] {
-    \path[-{Stealth[open, round, color=black]}, thick]
+\newcommand{\ltrans}[4] {
+    \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [reflexive #2] node[#3] {#4} (#1);
 }

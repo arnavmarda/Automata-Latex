@@ -1,4 +1,4 @@
-# Automata-Latex
+# Automata-Latex (Version 1.0)
 Latex package to simplify making diagrams for DFAs using Tikz. The package, called "dfatex" makes it easier for a user to create DFAs with pre-defined styling.
 
 # Installing the Package

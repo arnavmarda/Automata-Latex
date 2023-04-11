@@ -2,7 +2,24 @@
 \ProvidesPackage{dfatex}[2023/04/03 v1.0 LaTeX2e package]
 
 \RequirePackage{tikz}
-\usetikzlibrary{automata, arrows.meta, positioning}
+\RequirePackage{etoolbox}
+\usetikzlibrary{automata, arrows.meta, positioning, fit, matrix}
+
+
+\newcommand\starting{}
+
+% \printlist[<sep>]{<list macro>}
+\newcommand{\printlist}[2][,]{{% Print list
+  % http://tex.stackexchange.com/a/89187/5764
+  \def\listsep{\def\listsep{#1}}% Delayed execution of list separator
+  \renewcommand{\do}[1]{\listsep##1}%
+\dolistloop#2 
+}}
+
+\newcommand{\printtransitions}[1]{
+    #1, 
+  }
+
 
 \tikzset{
     reflexive above/.style={->,loop,in=120,out=60,looseness=#1, >={Stealth[open, round]}},
@@ -15,7 +32,10 @@
     reflexive right/.default={6}
 }
 
-\newenvironment{dfa}[0]{
+\newenvironment{dfa}{
+    \gdef\accepting{}
+    \gdef\transitions{}
+    \gdef\states{}
     \begin{tikzpicture}[
         shorten >=1pt,
         >={Stealth[round]},
@@ -24,13 +44,19 @@
         on grid,
         auto,
         every state/.style={ultra thick},
-        accepting/.style ={draw=green!50!black, ultra thick, fill=green!80!black, text=black}
+        accepting/.style ={draw=green!50!black, ultra thick, fill=green!80!black, text=black},
+        F/.style = {draw, fill=white, 
+                           inner sep=0pt, outer sep=0pt,
+                          },
+        remember picture,
         ]
 }{
     \end{tikzpicture}
 }
 
 \newcommand{\start}[3]{
+    \gdef\starting{#3}
+    \listgadd\states{#3}
     \node (#1) [
         state,
         initial #2,
@@ -40,6 +66,8 @@
 }
 
 \newcommand{\accept}[3]{
+    \listgadd\accepting{#3}
+    \listgadd\states{#3}
     \node (#1) [
         state, 
         accepting,
@@ -48,6 +76,7 @@
 }
 
 \newcommand{\state}[3]{
+    \listgadd\states{#3}
     \node (#1) [
         state, 
         #2
@@ -55,11 +84,50 @@
 }
 
 \newcommand{\trans}[5] {
+    \gdef\toadd{$\delta$($#1$, \{$#4$\}) = $#5$}
+    \listgadd\transitions{$\delta$($#1$, \{$#4$\}) = $#5$}
     \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [#2] node[#3] {#4} (#5);
 }
 
 \newcommand{\ltrans}[4] {
+    \gdef\toadd{$\delta$($#1$, \{$#4$\}) = $#1$}
+    \listgadd\transitions{$\delta$($#1$, \{$#4$\}) = $#1$}
     \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [reflexive #2] node[#3] {#4} (#1);
 }
+
+\newcommand{\makefdef}[1] {
+    % \begin{center}
+    %     \fbox{
+    %         \textbf{Alphabet:} #1
+
+
+    %         \textbf{States:} \{\printlist{\states}\} 
+
+
+    %         \textbf{Accepting States:} \{\printlist{\accepting}\}
+
+
+    %         \textbf{Transitions:} 
+    %         \begin{enumerate}
+    %             \forlistloop{\printtransitions}{\transitions} 
+    %         \end{enumerate}
+
+
+    %         \textbf{Start State:} \{\starting\}
+    %     }
+    % \end{center}
+
+    % \noindent\resizebox{\textwidth}{
+
+    \begin{tikzpicture}[node distance=1ex, font=\normalsize]
+        \node[draw, fill=gray!30, text=black, align=center, text width=\textwidth, text centered, font=\normalsize, anchor=center](header){ \textbf{Formal Definition}};
+        \node[draw, fill=white, text=black, below =of header, align=center, text width=\textwidth, text centered, font=\normalsize](states){ \textbf{Q}: \{\printlist{\states}\}};
+        \node[draw, fill=white, text=black, below =of states, align=center, text width=\textwidth, text centered, font=\normalsize](alphabet){ $\mathbf{\Sigma}$: #1};
+        \node[draw, fill=white, text=black, below =of alphabet, align=center, text width=\textwidth, text centered, font=\normalsize](transitions){ $\mathbf{\delta}$: \forlistloop{\printtransitions}{\transitions}};
+        \node[draw, fill=white, text=black, below =of transitions, align=center, text width=\textwidth, text centered, font=\normalsize](start){ $\mathbf{q_0}$: \starting};
+        \node[draw, fill=white, text=black, below =of start, align=center, text width=\textwidth, text centered, font=\normalsize](accept){ \textbf{F}: \{\printlist{\accepting}\}};
+    \end{tikzpicture}
+}
+

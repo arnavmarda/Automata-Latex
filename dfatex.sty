@@ -5,14 +5,31 @@
 \RequirePackage{etoolbox}
 \usetikzlibrary{automata, arrows.meta, positioning, fit, matrix}
 
+\makeatletter
+\def\gnewcommand{\g@star@or@long\gnew@command}
+\def\grenewcommand{\g@star@or@long\grenew@command}
+\def\g@star@or@long#1{% 
+  \@ifstar{\let\l@ngrel@x\global#1}{\def\l@ngrel@x{\long\global}#1}}
+\def\gnew@command#1{\@testopt{\@gnewcommand#1}0}
+\def\@gnewcommand#1[#2]{%
+  \kernel@ifnextchar [{\@gxargdef#1[#2]}%
+                {\@argdef#1[#2]}}
+\let\@gxargdef\@xargdef
+\patchcmd{\@gxargdef}{\def}{\gdef}{}{}
+\let\grenew@command\renew@command
+\patchcmd{\grenew@command}{\new@command}{\gnew@command}{}{}
+\makeatother
 
-\newcommand\starting{}
 
-% \printlist[<sep>]{<list macro>}
+\gnewcommand{\starting}{}
+\gnewcommand{\accepting}{}
+\gnewcommand{\transitions}{}
+\gnewcommand{\states}{}
+
 \newcommand{\printlist}[2][,]{{% Print list
   % http://tex.stackexchange.com/a/89187/5764
-  \def\listsep{\def\listsep{#1}}% Delayed execution of list separator
-  \renewcommand{\do}[1]{\listsep##1}%
+  \def\listsep{\def\listsep{#1}}
+  \grenewcommand{\do}[1]{\listsep##1}%
 \dolistloop#2 
 }}
 
@@ -33,9 +50,9 @@
 }
 
 \newenvironment{dfa}{
-    \gdef\accepting{}
-    \gdef\transitions{}
-    \gdef\states{}
+    \grenewcommand{\accepting}{}
+    \grenewcommand{\transitions}{}
+    \grenewcommand{\states}{}
     \begin{tikzpicture}[
         shorten >=1pt,
         >={Stealth[round]},
@@ -55,7 +72,7 @@
 }
 
 \newcommand{\start}[3]{
-    \gdef\starting{#3}
+    \grenewcommand{\starting}{#3}
     \listgadd\states{#3}
     \node (#1) [
         state,
@@ -84,43 +101,18 @@
 }
 
 \newcommand{\trans}[5] {
-    \gdef\toadd{$\delta$($#1$, \{$#4$\}) = $#5$}
     \listgadd\transitions{$\delta$($#1$, \{$#4$\}) = $#5$}
     \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [#2] node[#3] {#4} (#5);
 }
 
 \newcommand{\ltrans}[4] {
-    \gdef\toadd{$\delta$($#1$, \{$#4$\}) = $#1$}
     \listgadd\transitions{$\delta$($#1$, \{$#4$\}) = $#1$}
     \path[-{Stealth[open, round, color=black]}, very thick]
     (#1) edge [reflexive #2] node[#3] {#4} (#1);
 }
 
 \newcommand{\makefdef}[1] {
-    % \begin{center}
-    %     \fbox{
-    %         \textbf{Alphabet:} #1
-
-
-    %         \textbf{States:} \{\printlist{\states}\} 
-
-
-    %         \textbf{Accepting States:} \{\printlist{\accepting}\}
-
-
-    %         \textbf{Transitions:} 
-    %         \begin{enumerate}
-    %             \forlistloop{\printtransitions}{\transitions} 
-    %         \end{enumerate}
-
-
-    %         \textbf{Start State:} \{\starting\}
-    %     }
-    % \end{center}
-
-    % \noindent\resizebox{\textwidth}{
-
     \begin{tikzpicture}[node distance=1ex, font=\normalsize]
         \node[draw, fill=gray!30, text=black, align=center, text width=\textwidth, text centered, font=\normalsize, anchor=center](header){ \textbf{Formal Definition}};
         \node[draw, fill=white, text=black, below =of header, align=center, text width=\textwidth, text centered, font=\normalsize](states){ \textbf{Q}: \{\printlist{\states}\}};
@@ -129,5 +121,9 @@
         \node[draw, fill=white, text=black, below =of transitions, align=center, text width=\textwidth, text centered, font=\normalsize](start){ $\mathbf{q_0}$: \starting};
         \node[draw, fill=white, text=black, below =of start, align=center, text width=\textwidth, text centered, font=\normalsize](accept){ \textbf{F}: \{\printlist{\accepting}\}};
     \end{tikzpicture}
+
+    \grenewcommand{\accepting}{}
+    \grenewcommand{\transitions}{}
+    \grenewcommand{\states}{}
 }
 

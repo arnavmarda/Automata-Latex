@@ -8,4 +8,4 @@ After downloading the .sty file, you will need to place it in the tex/latex/dfat
 Refer to the documentation.pdf file in the repository for more information on usage.
 
 # Future Updates
-I will be adding a new future allowing you to use a single command to create all the transitions. 
+I will be adding a new feature allowing you to use a single command to create all the transitions. 
